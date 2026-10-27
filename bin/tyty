@@ -1,0 +1,6 @@
+#!/data/data/com.termux/files/usr/bin/bash
+echo "tyty-akita environment loaded"
+echo "Enhanced ADB with direct shell access active"
+cd "$HOME"
+[ -f "$HOME/tyty-akita/env.zsh" ] && . "$HOME/tyty-akita/env.zsh" || true
+exec ${SHELL:-/data/data/com.termux/files/usr/bin/bash} -i
