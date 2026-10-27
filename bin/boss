@@ -1,0 +1,52 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# BOSS Router - Master Share Menu Script
+# Usage examples:
+#   ln -s ~/bin/boss ~/bin/termux-url-opener
+#   ln -s ~/bin/boss ~/bin/termux-file-editor
+
+INPUT="$1"
+LOG="$HOME/.boss_router.log"
+DL_DIR="$HOME/storage/downloads"
+
+echo "[$(date)] RECEIVED: $INPUT" >> "$LOG"
+
+if [[ -z "$INPUT" ]]; then
+    termux-toast "Boss: No input received"
+    exit 1
+fi
+
+# File route
+if [[ -f "$INPUT" ]]; then
+    FILENAME=$(basename "$INPUT")
+    mkdir -p "$DL_DIR/BossFiles"
+    cp "$INPUT" "$DL_DIR/BossFiles/$FILENAME"
+    termux-toast "Boss: Saved $FILENAME"
+    exit 0
+fi
+
+# URL route
+if [[ "$INPUT" =~ ^https?:// ]]; then
+    termux-toast "Boss: Processing URL"
+    mkdir -p "$DL_DIR/BossURLs"
+    cd "$DL_DIR/BossURLs" || exit
+
+    if command -v yt-dlp &> /dev/null; then
+        yt-dlp "$INPUT" >> "$LOG" 2>&1
+    elif command -v curl &> /dev/null; then
+        curl -O -J -L "$INPUT" >> "$LOG" 2>&1
+    else
+        wget "$INPUT" >> "$LOG" 2>&1
+    fi
+
+    termux-toast "Boss: Download complete"
+    exit 0
+fi
+
+# Text route
+termux-toast "Boss: Executing via tyadb"
+if command -v tyadb &> /dev/null; then
+    tyadb shell "$INPUT" >> "$LOG" 2>&1
+else
+    echo "$INPUT" >> "$HOME/boss_notes.txt"
+    termux-toast "Boss: tyadb missing, saved as text"
+fi
